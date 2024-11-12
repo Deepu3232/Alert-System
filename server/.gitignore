@@ -1,0 +1,10 @@
+.env
+__pycache__
+fastapi.exe
+uvicorn.exe
+config/__pycache__
+models/__pycache__
+routes/__pycache__
+schema/__pycache__
+config/__pycache
+ls.py
