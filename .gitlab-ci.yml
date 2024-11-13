@@ -1,0 +1,54 @@
+docker-build-client:
+  # Use the official docker image.
+  image: docker:cli
+  stage: build
+  services:
+    - docker:dind
+  variables:
+    FULL_CI_REGISTRY_PATH: '$CI_REGISTRY_IMAGE/client'
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  # All branches are tagged with $DOCKER_IMAGE_NAME (defaults to commit ref slug)
+  # Default branch is also tagged with `latest`
+  script:
+    - cd client
+    - docker build -t "$FULL_CI_REGISTRY_PATH:$CI_COMMIT_REF_SLUG" .
+    - docker push "$FULL_CI_REGISTRY_PATH:$CI_COMMIT_REF_SLUG"
+  tags:
+    - linux
+docker-build-backend:
+  # Use the official docker image.
+  image: docker:cli
+  stage: build
+  services:
+    - docker:dind
+  variables:
+    FULL_CI_REGISTRY_PATH: '$CI_REGISTRY_IMAGE/server'
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  # All branches are tagged with $DOCKER_IMAGE_NAME (defaults to commit ref slug)
+  # Default branch is also tagged with `latest`
+  script:
+    - cd server  
+    - docker build -t "$FULL_CI_REGISTRY_PATH:$CI_COMMIT_REF_SLUG" .
+    - docker push "$FULL_CI_REGISTRY_PATH:$CI_COMMIT_REF_SLUG"
+  tags:
+    - linux   
+docker-build-script:
+  # Use the official docker image.
+  image: docker:cli
+  stage: build
+  services:
+    - docker:dind
+  variables:
+    FULL_CI_REGISTRY_PATH: '$CI_REGISTRY_IMAGE/script'
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  # All branches are tagged with $DOCKER_IMAGE_NAME (defaults to commit ref slug)
+  # Default branch is also tagged with `latest`
+  script:
+    - cd server  
+    - docker build -t "$FULL_CI_REGISTRY_PATH:$CI_COMMIT_REF_SLUG" .
+    - docker push "$FULL_CI_REGISTRY_PATH:$CI_COMMIT_REF_SLUG"
+  tags:
+    - linux 
