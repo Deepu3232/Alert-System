@@ -5,6 +5,13 @@ from schema.schemas import list_serial
 from bson import ObjectId
 from pymongo import ReturnDocument
 from datetime import datetime
+from pydantic import BaseModel
+import json
+
+
+class Contract(BaseModel):
+    contractID : str
+    # name : str
 
 def serialize_document(doc):
     """ Convert MongoDB document with ObjectId to a serializable format. """
@@ -54,25 +61,28 @@ async def get_subscriptions():
     subscriptions_list = list(subscriptions.find({"user" : "hardik.singh"}))
     return {"success": True, "subscriptions": list_serial(subscriptions_list)}
 
-@router.post("/updateStatus")
-async def update_status(subscription : Subscriptions):
-        # Convert subscription to dictionary
-    subscription_dict = subscription.model_dump()
-    id = subscription_dict["_id"]
-    print(subscription_dict["_id"])
-    print(subscription_dict["product"])
-    print(subscription_dict["productType"])
+@router.patch("/updateStatus/{id}")
+async def update_status(id : str , contract : Contract):
+    alertID = ObjectId(id)
+    # print("AlertID " , alertID)
+    # print("contract " , contract)
+    cID = contract.contractID
+    existing_subscription = subscriptions.find_one_and_update(
+        {
+            "_id" : alertID,
+            "details.insID": cID
+        },
+        {
+            "$set" : {
+                "details.$.status" : "breached"
+            }
+        },
+        return_document=ReturnDocument.AFTER
 
-    existing_subscription = subscriptions.find_one({"_id" : id})
+        )
 
-    print(existing_subscription)
-    result = subscriptions.find_one_and_update(
-        {"_id": id },
-        {"$set": {"status": "breached"}},
-        return_document=True
-    )
+    return {"data" : serialize_document(existing_subscription)} 
 
-    return {"success": True, "type" : "previousOneUpdated" , "subscriptions": serialize_document(result)}
 
 @router.delete("/deleteAlert/{id}")
 async def delete_alert(id: str):
