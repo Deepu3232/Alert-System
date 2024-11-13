@@ -1,7 +1,5 @@
 /server/.env
 /server/__pycache__/
-/server/fastapi.exe
-/server/uvicorn.exe
 /server/config/__pycache__/
 /server/models/__pycache__/
 /server/routes/__pycache__/

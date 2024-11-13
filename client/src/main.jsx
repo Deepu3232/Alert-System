@@ -107,8 +107,10 @@ const renderApp = () => {
                 </UnauthenticatedTemplate>
             )}
         </MsalProvider>
+
+        
     );
 };
 
+
 renderApp();
-// reportWebVitals();
