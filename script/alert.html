@@ -380,6 +380,14 @@
                     }
                 });
 
+                const getDetails = async () => {
+                    const getnewones = await fetch("http://localhost:8000/getAlerts");
+                    const getnewonedata = await getnewones.json();
+
+
+                    
+                }
+
                 bestAskQtyAlertSubscription.setDataAdapter("HGL1_Adapter");
                 bestAskQtyAlertSubscription.setRequestedSnapshot("no");
                 bestAskQtyAlertSubscription.setRequestedMaxFrequency(1);

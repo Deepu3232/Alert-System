@@ -34,3 +34,7 @@
 
 
 /extras
+
+/client/.env
+/server/.env
+/script/.env

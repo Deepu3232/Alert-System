@@ -27,6 +27,8 @@ export const Alerts = ({ username, accounts }) => {
         overflowY: "scroll"
     }
 
+    const baseURL = import.meta.env.VITE_BASE_URL
+
     const [products, setProducts] = useState([
         "225",
         "10Y",
@@ -651,7 +653,7 @@ export const Alerts = ({ username, accounts }) => {
                 'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS'
             }
             // const response = await fetch("https://ap-south-1.aws.data.mongodb-api.com/app/application-0-tbfpqcl/endpoint/getSubscriptions", headersss);
-            const response = await fetch("http://localhost:8000/getSubscriptions", headersss)
+            const response = await fetch(`${baseURL}/getSubscriptions`, headersss)
             console.log("resonse ", response);
             const data = await response.json();
             console.log("data ", data.subscriptions)
@@ -815,26 +817,6 @@ export const Alerts = ({ username, accounts }) => {
         }
     }
 
-
-    const getData = async () => {
-        const respo = await fetch("http://localhost:8000/getSubscriptions")
-        const data = await respo.json()
-
-        setSubscriptions(data.subscriptions)
-
-        const respo2 = await fetch("http://localhost:8000/getAlerts" , {
-            method : "POST",
-            headers : {
-                "Content-Type" : "application/json"
-            },
-            body : JSON.stringify({user : username})
-        })
-        const data2 = await respo2.json()
-
-
-    }
-
-
     const setAlert = async (e) => {
         e.preventDefault();
         const tempProductType = (productType === "future" ? "outrights" : "spreads")
@@ -850,7 +832,7 @@ export const Alerts = ({ username, accounts }) => {
         // setInfo(tempInfo) ; 
         // console.log("INFOOOOO , " , info); 
         // console.log("tempInfo " , tempInfo)
-        const response = await fetch('http://localhost:8000/setSubscriptions', {
+        const response = await fetch(`${baseURL}/setSubscriptions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1009,7 +991,7 @@ export const Alerts = ({ username, accounts }) => {
                     }
 
 
-                    const response = await fetch(`http://localhost:8000/deleteAlert/${id}`, {
+                    const response = await fetch(`${baseURL}/deleteAlert/${id}`, {
                         "method": "DELETE",
                         'mode': "cors",
                         'headers': {
@@ -1056,7 +1038,7 @@ export const Alerts = ({ username, accounts }) => {
         closeThresholdUpdateModal.current.click();
 
         //API call for updating the threshold in the DB
-        const response = await fetch(`http://localhost:8000/updateThreshold/${details.id}`, {
+        const response = await fetch(`${baseURL}/updateThreshold/${details.id}`, {
             "method": "POST",
             "body": JSON.stringify({ newThreshold }),
             "content-type": "application/json"
@@ -1100,7 +1082,7 @@ export const Alerts = ({ username, accounts }) => {
         alert("Alert is re-activated")
         //here we have to set the status of all the breached alerts to "active"
         //Make an API call to the following alertID, and change for each contractID status from "breached" to "active"
-        const response = await fetch(`http://localhost:8000/reactivateAlert/${alertID}`, {
+        const response = await fetch(`${baseURL}/reactivateAlert/${alertID}`, {
             "method": "PATCH",
             "content-type": "application/json"
         })

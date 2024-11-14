@@ -8,14 +8,14 @@ export default defineConfig({
   build: {
     target: "esnext", // or "es2019",
   }, 
-  // preview: {
-  //   port: 8080,
-  //   strictPort: true,
-  // },
-  // server: {
-  //   port: 8080,
-  //   strictPort: true,
-  //   host: true,
-  //   origin: "http://localhost:8080",
-  // },
+  preview: {
+    port: 3000,
+    strictPort: true,
+  },
+  server: {
+    port: 3000,
+    strictPort: true,
+    host: true,
+    origin: "http://localhost:3000",
+  },
 })
