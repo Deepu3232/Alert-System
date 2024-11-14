@@ -1,4 +1,4 @@
-/server/.env
+
 /server/__pycache__/
 /server/config/__pycache__/
 /server/models/__pycache__/
