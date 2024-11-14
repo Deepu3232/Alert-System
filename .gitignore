@@ -6,7 +6,8 @@
 /server/schema/__pycache__/
 /server/config/__pycache
 /server/ls.py
-
+/server/fastapi.exe
+/server/uvicorn.exe
 
 /client/logs/
 /client/*.log
