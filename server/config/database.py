@@ -1,7 +1,14 @@
 from pymongo import MongoClient
-# client = MongoClient("mongodb+srv://hardik:hardik@cluster0.tasf6.mongodb.net/?retryWrites=true&w=majority")
-client = MongoClient("mongodb://10.132.25.23:27017/")
+from dotenv import load_dotenv
+import os
 
-db = client.alerts_db
+load_dotenv()
+
+dbURL = os.getenv("DATABASE_URL")
+# client = MongoClient("mongodb+srv://hardik:hardik@cluster0.tasf6.mongodb.net/?retryWrites=true&w=majority")
+client = MongoClient(dbURL)
+# mongodb://admin.alert:alert123@hor-mongodb1.corp.hertshtengroup.com:27017/?authSource=alert
+
+db = client.alert
 
 subscriptions = db["subscriptions"] 
