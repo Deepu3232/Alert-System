@@ -27,8 +27,6 @@ export const Alerts = ({ username, accounts }) => {
         overflowY: "scroll"
     }
 
-    const baseURL = import.meta.env.VITE_BASE_URL
-
     const [products, setProducts] = useState([
         "225",
         "10Y",
@@ -567,14 +565,25 @@ export const Alerts = ({ username, accounts }) => {
     const [searchBox, setSearchBox] = useState("")
     const [contractsToShow, setContractsToShow] = useState([]);
 
-    let navigate = useNavigate() ; 
-
+    let navigate = useNavigate();
+    let baseURL = import.meta.env.VITE_BASE_URL
     const handleAlertTypeChange = (e) => {
         console.log("alertTypeHere ", e.target.value);
         setAlertType(e.target.value);
-        if (e.target.value === "strategyAlert") {
+        if (e.target.value === "bidStrategyAlert") {
             // openStrategyAlertModalRef.current.click();
-            navigate("/strategy")
+            navigate("/strategy",{
+                state: {
+                    alertType: "bidStrategyAlert"
+                }
+            })
+        }
+        else if (e.target.value === "askStrategyAlert") {
+            navigate("/strategy",{
+                state: {
+                    alertType: "askStrategyAlert"
+                }
+            })
         }
     }
 
@@ -658,7 +667,6 @@ export const Alerts = ({ username, accounts }) => {
             const data = await response.json();
             console.log("data ", data.subscriptions)
             setSubscriptions(data.subscriptions);
-
         }
 
         getSubscriptions();
@@ -730,9 +738,9 @@ export const Alerts = ({ username, accounts }) => {
 
     const getContractsForStrategyAlert = (e) => {
         e.preventDefault();
-        let btn = e.target ; 
-        console.log("E.target " , )
-        console.log("E.target " ,btn.getAttribute('class'))
+        let btn = e.target;
+        console.log("E.target ",)
+        console.log("E.target ", btn.getAttribute('class'))
         // let button = document.querySelector(e.target) ; 
 
         // console.log("TARGET " , button) ; 
@@ -816,6 +824,8 @@ export const Alerts = ({ username, accounts }) => {
             }
         }
     }
+
+
 
     const setAlert = async (e) => {
         e.preventDefault();
@@ -1094,9 +1104,25 @@ export const Alerts = ({ username, accounts }) => {
         <>
             <form className="d-flex" onSubmit={setAlert} role="search">
                 <div className="mt-5 d-flex w-100 justify-content-around" >
+                    
+                    <div className="alertType">
+                        {/* <select value={comp} onChange={handleCompChange} className="form-select" aria-label="Default select example"> */}
+                        <select name='alertType' value={alertType} onChange={handleAlertTypeChange} className="form-select" aria-label="Default select example">
+                            <option selected>Select Alert</option>
+                            <option value="bestAskPrice">Best Ask Price</option>
+                            <option value="bestBidPrice">Best Bid Price</option>
+                            <option value="bestAskQty">Best Ask Quantity</option>
+                            <option value="bestBidQty">Best Bid Quantity</option>
+                            <option value="bidStrategyAlert">Strategy Alert (Bid)</option>
+                            <option value="askStrategyAlert">Strategy Alert (Ask)</option>
+                            <option value="icebergAlert">Iceberg Alert</option>
+                        </select>
+                    </div>
+
                     <div className="alertName">
                         <input name='alertName' onChange={handleAlertNameChange} value={alertName} class="form-control me-2" type="text" placeholder="Enter Alert Name" aria-label="Search" />
                     </div>
+                    
 
                     <div className='d-flex w-25'>
                         <select name='product' value={product} onChange={handleProductChange} className="form-select w-100" aria-label="select example" type="productType" placeholder="Product">
@@ -1127,18 +1153,7 @@ export const Alerts = ({ username, accounts }) => {
                         </div>
                         {/* <button onClick={getContracts} class="btn btn-success w-100" type="submit">Get Contracts</button> */}
                     </div>
-                    <div className="alertType">
-                        {/* <select value={comp} onChange={handleCompChange} className="form-select" aria-label="Default select example"> */}
-                        <select name='alertType' value={alertType} onChange={handleAlertTypeChange} className="form-select" aria-label="Default select example">
-                            <option selected>Select Alert</option>
-                            <option value="bestAskPrice">Best Ask Price</option>
-                            <option value="bestBidPrice">Best Bid Price</option>
-                            <option value="bestAskQty">Best Ask Quantity</option>
-                            <option value="bestBidQty">Best Bid Quantity</option>
-                            <option value="strategyAlert">Strategy Alert</option>
-                            <option value="icebergAlert">Iceberg Alert</option>
-                        </select>
-                    </div>
+                    
 
                     <div className="threshold">
                         <input name='threshold' onChange={handleThresholdChange} value={threshold} class="form-control me-2" type="productType" placeholder="Enter Threshold" aria-label="Search" />
@@ -1393,50 +1408,144 @@ export const Alerts = ({ username, accounts }) => {
 
             <br /><br /><br />
             <div className='container'>
-                {subscriptions.length > 0 &&
+                {subscriptions.length > 0 && (
                     <>
-                        {
-                            subscriptions.map((subs) => {
-                                const contracts = subs.details.map(detail => detail.contractName).join(', ');
-                                // console.log("HELLO ", contracts)
-                                // const date = new Date(subs.created_at);
-                                // const normalDateStr = date.toLocaleString('en-US', options);
-                                // console.log("SUBS ", subs);
-                                console.log("SUBS , " , subs)
+                        {subscriptions.map((subs) => {
+                            // Check if alertType is not "bidStrategyAlert"
+                            if (subs.alertType !== "bidStrategyAlert" && subs.alertType !== "askStrategyAlert") {
+                                const contracts = subs.details
+                                    .map((detail) => detail.contractName)
+                                    .join(", ");
+
+                                console.log("SUBS " , subs)
 
                                 return (
-                                    <>
-                                        {/* <div className='h-6 overflow-auto border border-1 d-flex flex-column mb-4'> */}
-                                        <div className='h-6 overflow-auto border border-success border-2 rounded p-3 d-flex flex-column mb-4 bg-white'>
-                                            <div className='d-flex justify-content-between'>
-                                                <h5 className='text-monospace text-decoration-underline'>{subs.alertName}</h5>
-                                                <div style={{ width: '6rem' }} className='d-flex flex-row justify-content-around'>
-                                                    <VscDebugRestart onClick={() => reactivateAlert(subs.id)} style={{ cursor: 'pointer' }} color='brown' size='25px' />
-                                                    <FiEdit style={{ cursor: 'pointer' }} onClick={() => updateAlert(subs)} color='purple' size='24px' />
-                                                    <RiDeleteBin6Line onClick={() => deleteAlert(subs.id)} style={{ cursor: 'pointer' }} color='red' size='25px' />
-                                                </div>
-                                            </div><br />
-                                            <h6 className='text-monospace'>Product: {subs.product}</h6>
-                                            <h6 className='text-monospace'>Product Type: {subs.productType.charAt(0).toUpperCase() + subs.productType.slice(1)}</h6>
-                                            <h6>Alert Type : {subs.alertType.charAt(0).toUpperCase() + subs.alertType.slice(1).toLowerCase()}</h6>
-                                            {/* <h6>Alert Status : {subs.alertStatus.charAt(0).toUpperCase() + subs.alertStatus.slice(1).toLowerCase()}</h6> */}
-                                            <h6>Threshold : {subs.threshold}</h6>
-                                            <h6>Contracts : {contracts}</h6>
-                                            {/* <h6>Date Created : {normalDateStr}</h6> */}
-                                            <br /><br />
+                                    <div
+                                        key={subs._id}
+                                        className="h-6 overflow-auto border border-success border-2 rounded p-3 d-flex flex-column mb-4 bg-white"
+                                    >
+                                        <div className="d-flex justify-content-between">
+                                            <h5 className="text-monospace text-decoration-underline">
+                                                {subs.alertName}
+                                            </h5>
+                                            <div
+                                                style={{ width: "6rem" }}
+                                                className="d-flex flex-row justify-content-around"
+                                            >
+
+                                                <FiEdit
+                                                    onClick={() => updateAlert(subs)}
+                                                    style={{ cursor: "pointer" }}
+                                                    color="purple"
+                                                    size="24px"
+                                                />
+                                                <VscDebugRestart
+                                                    onClick={() => reactivateAlert(subs._id)}
+                                                    style={{ cursor: "pointer" }}
+                                                    color="brown"
+                                                    size="25px"
+                                                />
+                                                <RiDeleteBin6Line
+                                                    onClick={() => deleteAlert(subs._id)}
+                                                    style={{ cursor: "pointer" }}
+                                                    color="red"
+                                                    size="25px"
+                                                />
+                                            </div>
                                         </div>
+                                        <br />
+                                        <h6 className="text-monospace">Product: {subs.product}</h6>
+                                        <h6 className="text-monospace">
+                                            Product Type:{" "}
+                                            {subs.productType.charAt(0).toUpperCase() +
+                                                subs.productType.slice(1)}
+                                        </h6>
+                                        <h6>
+                                            Alert Type:{" "}
+                                            {subs.alertType.charAt(0).toUpperCase() +
+                                                subs.alertType.slice(1).toLowerCase()}
+                                        </h6>
+                                        <h6>Threshold: {subs.threshold}</h6>
+                                        <h6>Contracts: {contracts}</h6>
+                                    </div>
+                                );
+                            } else {
+                                let StratDetails = subs.details;
+                                let str = ""; 
+                                StratDetails.map((eachContract => {
+                                    str += eachContract.contractName + "(" + eachContract.mult + ") ,";
+                                }))
 
-                                    </>
-
-                                )
-
-                            })
-                        }
-
-
+                                return (
+                                    <div
+                                        key={subs.id}
+                                        className="h-6 overflow-auto border border-success border-2 rounded p-3 d-flex flex-column mb-4 bg-white"
+                                    >
+                                        <div className="d-flex justify-content-between">
+                                            <h5 className="text-monospace text-decoration-underline">
+                                                {subs.alertName}
+                                            </h5>
+                                            <div
+                                                style={{ width: "6rem" }}
+                                                className="d-flex flex-row justify-content-around"
+                                            >
+                                                <VscDebugRestart
+                                                    onClick={() => reactivateAlert(subs.id)}
+                                                    style={{ cursor: "pointer" }}
+                                                    color="brown"
+                                                    size="25px"
+                                                />
+                                                <FiEdit
+                                                    onClick={() => updateAlert(subs._id)}
+                                                    style={{ cursor: "pointer" }}
+                                                    color="purple"
+                                                    size="24px"
+                                                />
+                                                <RiDeleteBin6Line
+                                                    onClick={() => deleteAlert(subs._id)}
+                                                    style={{ cursor: "pointer" }}
+                                                    color="red"
+                                                    size="25px"
+                                                />
+                                            </div>
+                                        </div>
+                                        <br />
+                                        {/* <h6 className="text-monospace">Product: {subs.product}</h6> */}
+                                        {/* <h6 className="text-monospace">
+                                            Product Type:{" "}
+                                            {subs.productType.charAt(0).toUpperCase() +
+                                                subs.productType.slice(1)}
+                                        </h6> */}
+                                        {
+                                            // StratDetails.map((detail, i) => {
+                                            //     return (
+                                            //         <div key={i}>
+                                            //             <h6 className="text-monospace">
+                                            //                 Product: {detail.product}
+                                            //             </h6>
+                                            //             <h6 className="text-monospace">
+                                            //                 Product Type:{" "}
+                                            //                 {detail.productType.charAt(0).toUpperCase() +
+                                            //                     detail.productType.slice(1)}
+                                            //             </h6>
+                                            //         </div>
+                                            //     )
+                                            // })
+                                        }
+                                        <h6>
+                                            Alert Type:{" "}
+                                            {subs.alertType.charAt(0).toUpperCase() +
+                                                subs.alertType.slice(1).toLowerCase()}
+                                        </h6>
+                                        <h6>Threshold: {subs.threshold}</h6>
+                                        <h6>Contracts: {str}</h6>
+                                    </div>
+                                );
+                            }
+                        })}
                     </>
+                )}
 
-                }
             </div>
 
 
