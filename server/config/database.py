@@ -12,4 +12,4 @@ client = MongoClient(dbURL)
 
 db = client[dbNAME]
 
-subscriptions = db["subscriptions"] 
+subscriptions = db["subscriptions"]

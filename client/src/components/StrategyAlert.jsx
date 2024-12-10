@@ -63,6 +63,7 @@ const StrategyAlert = () => {
         });
     };
 
+
     const handleContractSelect = (index, contractId) => {
         setStrategy((prevStrategy) => {
             const newDetails = [...prevStrategy.details];

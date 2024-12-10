@@ -1402,6 +1402,7 @@ export const Alerts = ({ username, accounts }) => {
                                 // const date = new Date(subs.created_at);
                                 // const normalDateStr = date.toLocaleString('en-US', options);
                                 // console.log("SUBS ", subs);
+                                console.log("SUBS , " , subs)
 
                                 return (
                                     <>

@@ -81,7 +81,7 @@ async def update_status(id : str , contract : Contract):
 
         )
 
-    return {"data" : serialize_document(existing_subscription)} 
+    return {"data" : serialize_document(existing_subscription)}
 
 
 @router.delete("/deleteAlert/{id}")
