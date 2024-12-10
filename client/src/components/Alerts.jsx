@@ -662,8 +662,8 @@ export const Alerts = ({ username, accounts }) => {
                 'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS'
             }
             // const response = await fetch("https://ap-south-1.aws.data.mongodb-api.com/app/application-0-tbfpqcl/endpoint/getSubscriptions", headersss);
-            // const response = await fetch(`${baseURL}/getSubscriptions`, headersss)
-            const response = await fetch(`http://localhost:8000/getSubscriptions`, headersss)
+            const response = await fetch(`${baseURL}/getSubscriptions`, headersss)
+            // const response = await fetch(`baseURL/getSubscriptions`, headersss)
             console.log("resonse ", response);
             const data = await response.json();
             console.log("data ", data.subscriptions)
