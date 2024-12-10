@@ -1,0 +1,10 @@
+{
+    "auths": {
+    "https://registry.lcy-gitlab.corp.hertshtengroup.com":{
+    "username":"hyd-quant-deply-token",
+    "password":"gldt-FB3kRahyV8tbSq8c8a1P",
+    "email":"hyd-quant-deply-token@hertshtengroup.com",
+    "auth":"aHlkLXF1YW50LWRlcGx5LXRva2VuOmdsZHQtRkIza1JhaHlWOHRiU3E4YzhhMVA="
+    }
+    }
+}
