@@ -2,6 +2,7 @@
 // maybe manually or after some interval of time 
 // small change also done related to modal : even on changing the product, and clicking on search button,
 //we were getting the same previous contracts, this is because we set setInfo(null) only after Set Alert button is clicked, but now setInfo(null) is added as soon as any of product or productType changes !!! 
+//we were getting this issue with version 1.0 as well.
 
 
 import { useEffect, useRef, useState } from 'preact/hooks'
