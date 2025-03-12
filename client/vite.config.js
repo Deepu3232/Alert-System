@@ -17,5 +17,6 @@ export default defineConfig({
     strictPort: true,
     host: true,
     origin: "http://localhost:3000",
+    allowedHosts: ["hydalert.dev.hertshtengroup.com"]
   },
 })
