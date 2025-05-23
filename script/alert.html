@@ -13,48 +13,41 @@
 <body>
     <script>
         // let username = document.cookie.split("=")[1]
-        let username = 'hardik.singh'
+        //document.getElementById('status').innerText = 'Fetching subscriptions...';
+        let username = 'rishitha.reddy'
         console.log('USER ', username);
 
         function mail1(ice) {
             window.alert("Iceberg Detected !")
             console.log("Iceberg Detected !")
         }
-        
-
         const sendMessage = async (contractName, alertType, threshold, parameterValue, username) => {
-            const response = await fetch("https://prod-201.westeurope.logic.azure.com:443/workflows/11c42d574ca449e29df8adb9ee6356f8/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=OmCQzr8Cz62bszUqJW0nkhaDMJGXI5lQHt_TvAThfXQ", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    triggerAuthenticationType: "All",
-                    schema: {
-                        type: "object",
-                        properties: {
-                            ConversationID: {
-                                type: "string"
-                            },
-                            MessageString: {
-                                type: "string"
-                            }
-                        },
-                        required: [
-                            "ConversationID",
-                            "MessageString"
-                        ]
-                    },
-                    ConversationID: `${username}@hertshtengroup.com`,
-                    MessageString: `Hey ! ${alertType} : ${contractName} Breached. ( ${parameterValue} > ${threshold} )`
-                }),
-            });
+            console.log("sendMessage starts");
+            console.log(` Alert sent: ${alertType} - ${contractName}`);
+            try {
+                const response = await fetch("https://prod-201.westeurope.logic.azure.com:443/workflows/11c42d574ca449e29df8adb9ee6356f8/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=OmCQzr8Cz62bszUqJW0nkhaDMJGXI5lQHt_TvAThfXQ", {
+                    //const response = await fetch("https://prod-201.201.logic.azure.com:443/workflows/...", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        triggerAuthenticationType: "All",
+                        ConversationID: `${username}@hertshtengroup.com`,
+                        MessageString: `Hey ! ${alertType} : ${contractName} Breached. ( ${parameterValue} > ${threshold} )`
+                    }),
+                });
 
-            console.log(`Hey ! ${alertType} : ${contractName} Breached. ( ${parameterValue} > ${threshold} )`)
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                console.log(` Alert sent: ${alertType} - ${contractName}`);
+            } catch (err) {
+                console.error(" Error sending alert:", err);
+            }
         }
 
 
-        const sendMessageForStrategyAlert = async (alertID , alertName , alertType) => {
+
+
+        const sendMessageForStrategyAlert = async (alertID, alertName, alertType) => {
             const response = await fetch("https://prod-201.westeurope.logic.azure.com:443/workflows/11c42d574ca449e29df8adb9ee6356f8/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=OmCQzr8Cz62bszUqJW0nkhaDMJGXI5lQHt_TvAThfXQ", {
                 method: "POST",
                 headers: {
@@ -85,15 +78,14 @@
             console.log(`Hey ! Strategy Alert : ${alertName} Breached !!`)
         }
 
-
         const updateStatus = async (id, insID, contractName, alertType, threshold, parameterValue, username) => {
-            sendMessage(contractName, alertType, threshold, parameterValue, username)
+            await sendMessage(contractName, alertType, threshold, parameterValue, username)
             let contractID = insID.split("-")[1];
-            // console.log("TEMP ", temp)
+            console.log("TEMP ", temp)
             console.log("ALERT ID ", id)
             // const response = await fetch(`http://localhost:8000/updateStatus/${id}`, {
-            // const response = await fetch(`http://localhost:8000/updateStatus/${id}`, {
-                const response = await fetch(`http://hydalert.dev.hertshtengroup.com/api/updateStatus/${id}`, {
+            ///const response = await fetch(`http://localhost:8000/updateStatus/${id}`, {
+            const response = await fetch(`http://hydalert.dev.hertshtengroup.com/api/updateStatus/${id}`, {
                 "method": "PATCH",
                 'mode': "cors",
                 'headers': {
@@ -106,19 +98,20 @@
             const data = await response.json();
 
             if (data) {
-
                 console.log(contractName, "  Breached")
             }
         }
 
-        const updateStatusofStrategyAlert = async (alertID , alertName , alertType) => {
+        const updateStatusofStrategyAlert = async (alertID, alertName, alertType) => {
             console.log("Came inside Update function! ! ")
-            sendMessageForStrategyAlert(alertID , alertName , alertType)
+            sendMessageForStrategyAlert(alertID, alertName, alertType)
             // const resp = await fetch(`http://localhost:8000/updateStrategyAlertStatus/${alertID}`, {
-            // const resp = await fetch(`http://localhost:8000/updateStrategyAlertStatus/${alertID}`, {
-                const resp = await fetch(`http://hydalert.dev.hertshtengroup.com/api/updateStrategyAlertStatus/${alertID}`, {
+            const resp = await fetch(`http://localhost:8000/updateStrategyAlertStatus/${alertID}`, {
+                //const resp = await fetch(`http://hydalert.dev.hertshtengroup.com/api/updateStrategyAlertStatus/${alertID}`, {
                 "method": "PATCH",
-                "content-type": "application/json"
+                headers: {
+                    "content-type": "application/json"
+                }
             })
             const data = await resp.json();
 
@@ -142,7 +135,7 @@
         let bestBidPriceAlertSubscription = null;
 
         let client = new LightstreamerClient("https://ls-md.corp.hertshtengroup.com", "TTsdkLSAdapter");
-        // const fields = ["key", "ExchangeRecvTime", "BestAsk", "BestAskQty", "BestBid", "BestBidQty"];
+        const fields = ["key", "ExchangeRecvTime", "BestAsk", "BestAskQty", "BestBid", "BestBidQty"];
 
 
         //for iceberg alert
@@ -164,7 +157,7 @@
 
         //For strategy alerts 
         let strategyClient = new LightstreamerClient("https://ls-md.corp.hertshtengroup.com/", "TTsdkLSAdapter");
-        const fields = ["key", "ExchangeRecvTime", "BestAsk", "BestAskQty", "BestBid", "BestBidQty"]
+        //const fields = ["key", "ExchangeRecvTime", "BestAsk", "BestAskQty", "BestBid", "BestBidQty"]
         strategyClient.connect();
         strategyClient.connectionOptions.setReconnectTimeout(2500);
         let strategyMap = new Map();
@@ -175,11 +168,13 @@
             try {
                 // console.log("cookies here ", document.cookie)
                 // const response = await fetch("https://ap-south-1.aws.data.mongodb-api.com/app/application-0-tbfpqcl/endpoint/getSubscriptions");
-                // const response = await fetch("http://localhost:8000/getSubscriptions");
-                const response = await fetch("http://hydalert.dev.hertshtengroup.com/api/getSubscriptions");
-                // console.log("respoonse ", response);
+                const response = await fetch("http://localhost:8000/getSubscriptions");
+                //const response = await fetch("http://hydalert.dev.hertshtengroup.com/api/getSubscriptions");
+
+                //console.log("respoonse ", response.json());
                 const data = await response.json();
-                // console.log("data ", data)
+                ///console.log("data ", data)
+
                 let allContracts = data.subscriptions;
                 let bestBidQtyInstrumentsString = "";
                 let bestAskQtyInstrumentsString = "";
@@ -196,31 +191,34 @@
                 let bidStrategySubscriptions = []
 
                 alerts = allContracts;
-                // console.log("ALERTS ", alerts)
+                ///console.log("ALERTS ", alerts)
 
                 allContracts.forEach(contractt => {
                     let details = contractt.details;
+                    ///console.log(details)
                     let alertType = contractt.alertType;
+                    //console.log(alertType)
                     if (alertType === 'bestAskQty') {
                         details.forEach(contract => {
-                            // console.log(contract)
+                            ///console.log(contract)
                             if (contract.status === "active") {
                                 bestAskQtyInstrumentsString = "TT-" + contract.insID
+                                //console.log(bestAskQtyInstrumentsString)
                                 bestAskQtyInstruments.push(bestAskQtyInstrumentsString)
                             }
-                            // console.log("bestAskQtyInstrumentsString ", bestAskQtyInstrumentsString);
+                            ///console.log("bestAskQtyInstrumentsString ", bestAskQtyInstrumentsString);
                         });
                     }
 
                     else if (alertType === 'bestBidQty') {
                         details.forEach(contract => {
-                            // console.log(contract)
+                            ///console.log(contract)
                             if (contract.status === "active") {
                                 bestBidQtyInstrumentsString = "TT-" + contract.insID
                                 bestBidQtyInstruments.push(bestBidQtyInstrumentsString)
                             }
 
-                            // console.log("bestAskQtyInstrumentsString ", bestAskQtyInstrumentsString);
+                            ///console.log("bestBidQtyInstrumentsString ", bestBidQtyInstrumentsString);
 
                         });
                     }
@@ -232,20 +230,20 @@
                                 bestAskPriceInstruments.push(bestAskPriceInstrumentsString)
                             }
 
-                            // console.log("bestAskQtyInstrumentsString ", bestAskQtyInstrumentsString);
+                            ///console.log("bestAskPriceInstrumentsString ", bestAskPriceInstrumentsString);
 
                         });
                     }
 
                     else if (alertType === 'bestBidPrice') {
                         details.forEach(contract => {
-                            // console.log(contract)
+                            ///console.log(contract)
                             if (contract.status === "active") {
                                 bestBidPriceInstrumentsString += "TT-" + contract.insID
                                 bestBidPriceInstruments.push(bestBidPriceInstrumentsString)
                             }
 
-                            // console.log("bestAskQtyInstrumentsString ", bestAskQtyInstrumentsString);
+                            ///console.log("bestBidPriceInstrumentsString ", bestBidPriceInstrumentsString);
 
                         });
                     }
@@ -253,7 +251,7 @@
 
                     else if (alertType === "icebergAlert") {
                         details.forEach(contract => {
-                            // console.log(contract)
+                            ///console.log(contract)
                             if (contract.status === "active") {
                                 icebergInstrumentsString = "TT-" + contract.insID
                                 icebergInstruments.push(icebergInstrumentsString)
@@ -263,7 +261,7 @@
                         });
                     }
 
-                    
+
 
 
                 });
@@ -273,7 +271,7 @@
                 if (bestAskQtyInstrumentsString.length != 0) {
                     // bestAskQtyInstruments[0] = bestAskQtyInstrumentsString; // Remove trailing comma
                     //Somehow we also need to check that for each of these instruments they should not get 
-                    console.log("bestAskQtyInstrumentsString ", bestAskQtyInstrumentsString);
+                    ///console.log("bestAskQtyInstrumentsString ", bestAskQtyInstrumentsString);
                     bestAskQtyAlert(bestAskQtyInstruments); // Initialize the subscription
                 }
                 else {
@@ -286,7 +284,7 @@
 
                 if (bestBidQtyInstrumentsString.length != 0) {
                     // bestBidQtyInstruments[0] = bestBidQtyInstrumentsString; // Remove trailing comma
-                    console.log("bestBidQtyInstrumentsString ", bestBidQtyInstrumentsString);
+                    ///console.log("bestBidQtyInstrumentsString ", bestBidQtyInstrumentsString);
                     bestBidQtyAlert(bestBidQtyInstruments); // Initialize the subscription
                 }
                 else {
@@ -299,7 +297,7 @@
                 if (bestAskPriceInstrumentsString.length != 0) {
                     // bestAskPriceInstruments[0] = bestAskPriceInstrumentsString; // Remove trailing comma
                     //Somehow we also need to check that for each of these instruments they should not get 
-                    console.log("bestAskPriceInstrumentsString ", bestAskPriceInstrumentsString);
+                    ///console.log("bestAskPriceInstrumentsString ", bestAskPriceInstrumentsString);
                     bestAskPriceAlert(bestAskPriceInstruments); // Initialize the subscription
                 }
                 else {
@@ -313,7 +311,7 @@
                 if (bestBidPriceInstrumentsString.length != 0) {
                     // bestBidPriceInstruments[0] = bestBidPriceInstrumentsString; // Remove trailing comma
                     //Somehow we also need to check that for each of these instruments they should not get 
-                    console.log("bestBidPriceInstrumentsString ", bestBidPriceInstrumentsString);
+                    ///console.log("bestBidPriceInstrumentsString ", bestBidPriceInstrumentsString);
                     bestBidPriceAlert(bestBidPriceInstruments); // Initialize the subscription
                 }
                 else {
@@ -326,7 +324,7 @@
 
                 if (icebergInstrumentsString.length != 0) {
                     // icebergInstruments[0] = icebergInstrumentsString; // Remove trailing comma
-                    console.log("icebergInstrumentsString ", icebergInstrumentsString);
+                    ///console.log("icebergInstrumentsString ", icebergInstrumentsString);
                     icebergAlert(icebergInstruments); // Initialize the subscription
                 }
                 else {
@@ -370,34 +368,41 @@
                 bestBidQtyAlertSubscription.addListener({
                     onItemUpdate: function (obj) {
                         let values = obj.updateValues;
-                        console.log("Bid Values here ", values);
+                        ///console.log("Bid Values here ", values);
                         let insID = values[2];
                         let BestAskQty = parseFloat(values[5]);
+                        ///console.log(BestAskQty);
                         let BestBidQty = parseFloat(values[7]);
+                        ///console.log("Bid Values here ", values);
+
+                        ///console.log(BestBidQty);
                         alerts.forEach((alert) => {
                             let FullThreshold = alert["threshold"];
-                            // console.log("FullThreshold " , FullThreshold)
+                            ///console.log("FullThreshold ", FullThreshold)
                             let comp = FullThreshold.split(" ")[0]
                             let threshold = parseFloat(FullThreshold.split(" ")[1])
-                            // console.log("COMP " , comp , "Threshold " , threshold)
-                            // console.log("threshold " , threshold)
-                            // console.log("alert TYPE " , alert.alertType)
+                            ///console.log("COMP ", comp, "Threshold ", threshold)
+                            ///console.log("threshold ", threshold)
+                            ///console.log("alert TYPE ", alert.alertType)
                             if (alert.alertType === "bestBidQty") {
                                 // console.log("came here")
                                 let contracts = alert["details"];
-                                
-                                // console.log(contracts)
+
+                                ///console.log(contracts)
                                 let alertType = alert.alertType
                                 let alertID = alert["_id"];
-                                // console.log("ALERT ID INSIDE BEST BID QUANTITY ALERT", alertID);
-                                // console.log("Camer HERE ")
+                                ///console.log(alertID)
+                                ///console.log("ALERT ID INSIDE BEST BID QUANTITY ALERT", alertID);
+                                //console.log("Came HERE ")
                                 contracts.forEach((contract) => {
-                                    // console.log(contract)
+                                    ///console.log(contract)
                                     let tempIns = "TT-" + contract.insID
+                                    ///console.log("tempIns", tempIns)
                                     if (tempIns === insID && eval(`${BestBidQty} ${comp} ${threshold}`) && contract.status === "active") {
-                                        console.log("BEST BID QUANTITY ALERT BREACHED !!!");
+                                        ///console.log("BEST BID QUANTITY ALERT BREACHED !!!");
                                         updateStatus(alertID, insID, contract.contractName, alertType, threshold, BestBidQty, alert["user"]);
-                                        // sendMessage(contractName, alertType, threshold, BestBidQty , alert["user"]);
+                                        ///console.log("update status");
+                                        //sendMessage(contractName, alertType, threshold, BestBidQty, alert["user"]);
                                     }
                                 });
                             }
@@ -410,14 +415,14 @@
                 bestBidQtyAlertSubscription.setRequestedMaxFrequency(1);
                 client.subscribe(bestBidQtyAlertSubscription);
                 client.connect();
-                // console.log("Subscribed to new instruments.");
+                ///console.log("Subscribed to new instruments.");
             }
         }
 
         function bestAskQtyAlert(bestAskQtyInstruments) {
             if (bestAskQtyAlertSubscription) {
                 client.unsubscribe(bestAskQtyAlertSubscription);
-                // console.log("Unsubscribed from 'bestAskQtyAlertSubscription' subscription.");
+                ///console.log("Unsubscribed from 'bestAskQtyAlertSubscription' subscription.");
             }
 
             if (bestAskQtyInstruments) {
@@ -425,7 +430,7 @@
                 bestAskQtyAlertSubscription.addListener({
                     onItemUpdate: function (obj) {
                         let values = obj.updateValues;
-                        console.log("Ask Values here ", values);
+                        ///console.log("Ask Values here ", values);
                         let insID = values[2];
                         let BestAskQty = parseFloat(values[5]);
                         let BestBidQty = parseFloat(values[7]);
@@ -433,27 +438,27 @@
                         alerts.forEach((alert) => {
                             if (alert.alertType === 'bestAskQty') {
                                 let FullThreshold = alert["threshold"];
-                                // console.log("FullThreshold " , FullThreshold)
+                                ///console.log("FullThreshold ", FullThreshold)
                                 let comp = FullThreshold.split(" ")[0]
                                 let threshold = parseFloat(FullThreshold.split(" ")[1])
 
-                                console.log("ALERT ", alert)
+                                ///console.log("ALERT ", alert)
 
 
                                 // console.log("Comp ", comp , "Threshold " , threshold)
 
                                 let contracts = alert["details"];
                                 let alertID = alert["_id"];
-                                // console.log("ALERT ID INSIDE BEST ASK QUANTITY ALERT", alertID);
+                                ///console.log("ALERT ID INSIDE BEST ASK QUANTITY ALERT", alertID);
                                 // let tempIns = "TT-" + contract.insID
                                 contracts.forEach((contract) => {
                                     let tempIns = "TT-" + contract.insID
                                     if (tempIns === insID && eval(`${BestAskQty} ${comp} ${threshold}`) && contract.status === "active") {
                                         updateStatus(alertID, insID, contract.contractName, alert.alertType, threshold, BestAskQty, alert["user"]);
-                                        // sendMessage(contractName, alertType, threshold, BestAskQty , alert.user)
+                                        //sendMessage(contractName, alertType, threshold, BestAskQty, alert.user)
 
 
-                                        // console.log("BEST ASK QUANTITY ALERT BREACHED !!!");
+                                        ///console.log("BEST ASK QUANTITY ALERT BREACHED !!!");
                                     }
                                 });
                             }
@@ -466,7 +471,7 @@
                 bestAskQtyAlertSubscription.setRequestedMaxFrequency(1);
                 client.subscribe(bestAskQtyAlertSubscription);
                 client.connect();
-                // console.log("Subscribed to new instruments.");
+                ///console.log("Subscribed to new instruments.");
             }
         }
 
@@ -474,7 +479,7 @@
 
             if (bestAskPriceAlertSubscription) {
                 client.unsubscribe(bestAskPriceAlertSubscription);
-                // console.log("Unsubscribed from 'bestAskPriceAlertSubscription' subscription.");
+                ///console.log("Unsubscribed from 'bestAskPriceAlertSubscription' subscription.");
             }
 
             if (bestAskPriceInstruments) {
@@ -482,17 +487,21 @@
                 bestAskPriceAlertSubscription.addListener({
                     onItemUpdate: function (obj) {
                         let values = obj.updateValues;
-                        console.log("Ask Price Values here ", values);
+                        ///console.log("Ask Price Values here ", values);
                         let insID = values[2];
+                        ///console.log(insID)
                         let BestAskPrice = parseFloat(values[4]);
                         let BestBidPrice = parseFloat(values[6]);
                         // console.log("bestask " , BestAskPrice)
                         alerts.forEach((alert) => {
                             if (alert.alertType === 'bestAskPrice') {
                                 let FullThreshold = alert["threshold"];
-                                // console.log("FullThreshold " , FullThreshold)
+                                //console.log(FullThreshold)
+                                ///console.log("FullThreshold ", FullThreshold)
                                 let comp = FullThreshold.split(" ")[0]
+                                //console.log(comp)
                                 let threshold = parseFloat(FullThreshold.split(" ")[1])
+                                ///console.log(threshold)
                                 // console.log("Threshold " , threshold)
                                 // console.log("BestAskPrice ", BestAskPrice , "threshold " , threshold , "comp " , comp)
                                 let contracts = alert["details"];
@@ -500,11 +509,20 @@
 
 
                                 contracts.forEach((contract) => {
+                                    ///console.log(contract)
                                     let tempIns = "TT-" + contract.insID
+                                    ///console.log(tempIns)
+                                    ///let condition = eval(`${BestAskPrice} ${comp} ${threshold}`);
+                                    ///console.log("Eval result:", condition);
+                                    ///if (condition) {
+                                        ///console.log("✅ Condition is TRUE - threshold breached!");
+                                    ///}
+
                                     if (tempIns === insID && eval(`${BestAskPrice} ${comp} ${threshold}`) && contract.status === "active") {
                                         updateStatus(alertID, insID, contract.contractName, alert.alertType, threshold, BestAskPrice, alert["user"]);
-                                        // sendMessage(contractName, alertType, threshold, BestAskPrice, alert.user)
-                                        // console.log("BEST ASK PRICE ALERT BREACHED !!!");
+                                        ///console.log("update status");
+                                        //sendMessage(contractName, alertType, threshold, BestAskPrice, alert.user)
+                                        ///console.log("BEST ASK PRICE ALERT BREACHED !!!");
                                     }
                                 });
                             }
@@ -517,14 +535,14 @@
                 bestAskPriceAlertSubscription.setRequestedMaxFrequency(1);
                 client.subscribe(bestAskPriceAlertSubscription);
                 client.connect();
-                // console.log("Subscribed to new instruments.");
+                ///console.log("Subscribed to new instruments.");
             }
         }
 
         function bestBidPriceAlert(bestBidPriceInstruments) {
             if (bestBidPriceAlertSubscription) {
                 client.unsubscribe(bestBidPriceAlertSubscription);
-                // console.log("Unsubscribed from 'bestBidPriceAlertSubscription' subscription.");
+                ///console.log("Unsubscribed from 'bestBidPriceAlertSubscription' subscription.");
             }
 
             if (bestBidPriceInstruments) {
@@ -532,7 +550,7 @@
                 bestBidPriceAlertSubscription.addListener({
                     onItemUpdate: function (obj) {
                         let values = obj.updateValues;
-                        console.log("Bid Price Values here ", values);
+                        ///console.log("Bid Price Values here ", values);
                         let insID = values[2];
                         let BestAskPrice = parseFloat(values[4]);
                         let BestBidPrice = parseFloat(values[6]);
@@ -567,21 +585,20 @@
                 bestBidPriceAlertSubscription.setRequestedMaxFrequency(1);
                 client.subscribe(bestBidPriceAlertSubscription);
                 client.connect();
-                // console.log("Subscribed to new instruments.");
+                ///console.log("Subscribed to new instruments.");
             }
         }
-
 
         //in icebergAlert, we have to start both TAS and L1 subscriptions
         function icebergAlert(icebergInstruments) {
             if (TASSubscription || L1Subscription) {
                 TASClient.unsubscribe(TASSubscription);
                 L1Client.unsubscribe(L1Subscription);
-                // console.log("Unsubscribed from 'icebergAlertSubscription' subscription.");
+                ///console.log("Unsubscribed from 'icebergAlertSubscription' subscription.");
             }
 
             if (icebergInstruments) {
-                // console.log("here " , icebergInstruments)
+                ///console.log("here ", icebergInstruments)
                 TASSubscription = new Subscription("DISTINCT", icebergInstruments, TAS_fields);
                 L1Subscription = new Subscription("MERGE", icebergInstruments, L1_fields);
 
@@ -589,7 +606,7 @@
                 TASSubscription.addListener({
                     onItemUpdate: function (update) {
                         let values = update.updateValues;
-                        console.log("Iceberg TAS Values  ", values);
+                        ///console.log("Iceberg TAS Values  ", values);
                         if (update.getValue("IsOtc") === "True") {
                             return;
                         }
@@ -604,9 +621,13 @@
                         }
 
                         const side = update.getValue("Direction");
+                        //console.log("side",side)
                         const qty = parseInt(update.getValue("Qty"), 10);
+                        //console.log(qty)
                         const price = (Math.round(parseFloat(update.getValue("Price")) * 10000) / 10000).toFixed(4);
+                        //console.log(price)
                         const ins = update.getValue("InstrumentId");
+                        //console.log(ins)
 
                         try {
                             if (!ice_dict[ins]) {
@@ -621,8 +642,8 @@
                         }
 
                         ltp_dict[ins] = price;
-                        console.log("ltp_dict", ltp_dict)
-                        console.log("ice_dict", ice_dict)
+                        ///console.log("ltp_dict", ltp_dict)
+                        ///console.log("ice_dict", ice_dict)
                     }
                 })
 
@@ -630,8 +651,8 @@
                 L1Subscription.addListener({
                     onItemUpdate: function (update) {
                         let values = update.updateValues;
-                        console.log("Iceberg L1 Values ", values);
-
+                        ///console.log("Iceberg L1 Values ", values);
+                        
                         const bid_pr = parseFloat(update.getValue("BestBid")).toFixed(4);
                         const ask_pr = parseFloat(update.getValue("BestAsk")).toFixed(4);
                         const ins = update.getValue("InstrumentId");
@@ -651,7 +672,9 @@
                         }
 
                         const ltp = parseFloat(ltp_dict[ins]);
+                        //console.log(ltp)
                         const str_ltp = ltp.toFixed(4);
+                        
 
                         if (bid_pr < ltp && ltp < ask_pr) {
                             ice_dict[ins][str_ltp] = { Take: 0, Hit: 0 };
@@ -662,25 +685,68 @@
                         if (bid_pr < ltp && ltp === ask_pr) {
                             ice_dict[ins][str_ltp]["Hit"] = 0;
                         }
-                        console.log("Checking here")
+                        ///console.log("Checking here")
                         //Check Alert Code
                         const ask_q = ice_dict[ins][str_ltp]["Take"];
+                        ///console.log("ask_q",ask_q)
                         const bid_q = ice_dict[ins][str_ltp]["Hit"];
+                        ///console.log("bid_q",bid_q)
+                        let ThresholdSell = null;
+                        let ThresholdBuy = null;
+                        alerts.forEach((alert) => {
+                            if (alert.alertType === 'icebergAlert') {
+                                let FullThreshold = alert["threshold"];
+                                //console.log("FullThreshold " , FullThreshold)
+                                let comp = FullThreshold.split(" ")[0]
+                                //console.log(comp)
+                                let threshold = parseFloat(FullThreshold.split(" ")[1])
+                                console.log(threshold)
+                                let contracts = alert["details"];
+                                let alertID = alert["_id"];
 
-                        if (ask_q >= thres) {
+
+                                contracts.forEach((contract) => {
+                                    console.log(contract)
+                                    let tempIns = "TT-" + contract.insID
+                                    if (tempIns === ins &&  contract.status === "active") {
+                                        console.log("working")
+                                        ThresholdSell={comp,val:threshold};
+                                        ThresholdBuy={comp,val:threshold};
+                                    }
+                                });
+                            }
+                        });
+                        
+                        if (ThresholdSell && eval(`${ask_q} ${ThresholdSell.comp} ${ThresholdSell.val}`)) {
+                            console.log("1")
                             const check_ls = [str_ltp, "Sell"];
+                            //console.log("check_ls",check_ls)
                             if (!existing_ice[ins] || !existing_ice[ins].some(item => item[0] === str_ltp && item[1] === "Sell")) {
+                                console.log("working")
+                                if (!existing_ice[ins]) {
+                                    existing_ice[ins] = [];
+                                }
                                 existing_ice[ins].push(check_ls);
+                                
+                                console.log(existing_ice)
                                 const ice = [contr, ...check_ls, ask_q, ins];
+                                console.log(ice)
                                 mail1(ice);
                             }
                         }
 
-                        if (bid_q >= thres) {
+                        if (ThresholdBuy && eval(`${bid_q} ${ThresholdBuy.comp} ${ThresholdBuy.val}`)) {
+                            console.log("2")
                             const check_ls = [str_ltp, "Buy"];
+                            //console.log("check_ls",check_ls)
                             if (!existing_ice[ins] || !existing_ice[ins].some(item => item[0] === str_ltp && item[1] === "Buy")) {
+                                console.log("working2")
+                                if (!existing_ice[ins]) {
+                                    existing_ice[ins] = [];
+                                }
                                 existing_ice[ins].push(check_ls);
                                 const ice = [contr, ...check_ls, bid_q, ins];
+                                console.log(ice)
                                 mail1(ice);
                             }
                         }
@@ -704,13 +770,15 @@
             }
         }
 
+
         const getStrategySubscriptions = async () => {
-            console.log("Start getSubscriptions ", strategyMap);
+            //ubscriptions ", strategyMap);
             subs.clear();
-            // const response = await fetch("http://localhost:8000/getSubscriptions");
-            const response = await fetch("http://hydalert.dev.hertshtengroup.com/api/getSubscriptions");
+            const response = await fetch("http://localhost:8000/getSubscriptions");
+            //const response = await fetch("http://hydalert.dev.hertshtengroup.com/api/getSubscriptions");
             const data = await response.json();
             let datas = data.subscriptions;
+            // console.log('Data...', datas)
             datas
                 .filter(
                     (strategy) =>
@@ -720,7 +788,7 @@
                     let threshold = strategy.threshold;
                     let alertID = strategy._id;
                     let alertName = strategy.alertName
-                    let alertType = strategy.alertType 
+                    let alertType = strategy.alertType
 
                     const mp = new Map();
                     let instruments = [];
@@ -744,6 +812,7 @@
                     subscription.setDataAdapter("HGL1_Adapter");
                     subscription.setRequestedSnapshot("no");
                     subscription.setRequestedMaxFrequency(1);
+                    ///console.log('123')
                 });
         };
 
@@ -755,7 +824,7 @@
                 strategyMap.delete(alertID)
             });
             subs.forEach((sub, aID) => {
-                let { subscription, mp, threshold, runningMp, totalIDs, flagMp, alertID , alertName , alertType } = sub;
+                let { subscription, mp, threshold, runningMp, totalIDs, flagMp, alertID, alertName, alertType } = sub;
 
                 strategyClient.subscribe(subscription)
                 strategyMap.set(alertID, subscription);
@@ -794,10 +863,10 @@
                             let comp = threshold.split(" ")[0];
                             let thresh = parseFloat(threshold.split(" ")[1]);
 
-                            if(alertType === "bidStrategyAlert" && eval(`${bidOfStructure} ${comp} ${thresh}`)){
+                            if (alertType === "bidStrategyAlert" && eval(`${bidOfStructure} ${comp} ${thresh}`)) {
                                 // console.log("ALERT ID " , alertID)
-                                updateStatusofStrategyAlert(alertID , alertName , alertType)
-                                console.log("bidOfStructure BREACHED !! Threshold Value: ", thresh);
+                                updateStatusofStrategyAlert(alertID, alertName, alertType)
+                                ///console.log("bidOfStructure BREACHED !! Threshold Value: ", thresh);
 
                                 strategyClient.unsubscribe(strategyMap.get(alertID));
                                 subs.delete(alertID)
@@ -805,9 +874,9 @@
 
                             }
 
-                            else if(alertType === "askStrategyAlert" && eval(`${askOfStructure} ${comp} ${thresh}`)){
-                                updateStatusofStrategyAlert(alertID , alertName , alertType)
-                                console.log("askOfStructure BREACHED !! Threshold Value: ", thresh);
+                            else if (alertType === "askStrategyAlert" && eval(`${askOfStructure} ${comp} ${thresh}`)) {
+                                updateStatusofStrategyAlert(alertID, alertName, alertType)
+                                ///console.log("askOfStructure BREACHED !! Threshold Value: ", thresh);
 
                                 strategyClient.unsubscribe(strategyMap.get(alertID));
                                 subs.delete(alertID)
@@ -820,7 +889,11 @@
         };
 
         setInterval(getSubscriptions, 1000);
-        setInterval(strategyAlert, 2000)
+        setInterval(strategyAlert, 2000);
+        setInterval(() => {
+            getSubscriptions();
+        }, 600000);
+
     </script>
 
 </body>

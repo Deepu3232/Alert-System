@@ -3,8 +3,8 @@ import { Routes, Route } from "react-router-dom"
 import { Alerts } from './components/Alerts'
 import StrategyAlertBidAndAsk from './components/StrategyAlertBidAndAsk'
 
-export const App = ({username , accounts}) => {
-    
+export const App = ({ username, accounts }) => {
+
     return (
         <Routes>
             <Route path="/" element={<Alerts username={username} accounts={accounts} />} />

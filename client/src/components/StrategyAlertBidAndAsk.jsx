@@ -1,4 +1,4 @@
-// import * as Ls from "lightstreamer-client-web";
+//import * as Ls from "lightstreamer-client-web";
 import React, { useState, useEffect } from 'react';
 import { BiCloudLightRain } from "react-icons/bi";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -16,7 +16,7 @@ const StrategyAlertBidAndAsk = ({ username }) => {
 
     // const [threshold  , setThreshold] = useState('');
     // console.log("strategy ", strategy);
-    const {state} = useLocation()
+    const { state } = useLocation()
     // console.log(state.alertType)
 
     const handleInputChange = (index, field, value) => {
@@ -75,8 +75,8 @@ const StrategyAlertBidAndAsk = ({ username }) => {
 
     const makeAPICall = async (backendData) => {
         const baseURL = import.meta.env.VITE_BASE_URL
-        // const response = await fetch("http://localhost:8000/setStrategyAlert", {
-            const response = await fetch(`${baseURL}/setStrategyAlert`, {
+        //const response = await fetch("http://localhost:8000/setStrategyAlert", {
+        const response = await fetch(`${baseURL}/setStrategyAlert`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -87,20 +87,53 @@ const StrategyAlertBidAndAsk = ({ username }) => {
         const resp = await response.json();
 
         if (resp) {
+            localStorage.setItem("refreshOnHome", "true");
             console.log("RESP , ", resp)
             console.log("DATA ENTERED !!!")
         }
     }
+    //     const makeAPICall = async (backendData) => {
+    //     const baseURL = import.meta.env.VITE_BASE_URL;
+    //     const response = await fetch(`${baseURL}/setStrategyAlert`, {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json"
+    //         },
+    //         body: JSON.stringify(backendData)
+    //     });
+
+    //     if (!response.ok) {
+    //         let errorMessage = "Server Error";
+    //         try {
+    //             const errorData = await response.json();
+    //             errorMessage = errorData.detail || JSON.stringify(errorData);
+    //         } catch {
+    //             errorMessage = await response.text();  // fallback if not JSON
+    //         }
+
+    //         Swal.fire({
+    //             title: "Error",
+    //             text: errorMessage,
+    //             icon: "error"
+    //         });
+    //         return;
+    //     }
+
+    //     const resp = await response.json();
+    //     console.log("RESP , ", resp);
+    //     console.log("DATA ENTERED !!!");
+    // };
+
 
     const setStrategyAlert = () => {
-        console.log("STrategy ", strategy)
+        console.log("Strategy ", strategy)
         let data = []
         strategy.details.map(detail => {
             if (detail.product.length > 0) {
                 data.push({
                     product: detail.product,
                     mult: detail.mult,
-                    selectedContract: detail.selectedContract,
+                    insID: detail.selectedContract,
                     contractName: detail.contractName
                 });
             }
@@ -114,6 +147,7 @@ const StrategyAlertBidAndAsk = ({ username }) => {
             threshold: strategy.threshold,
             details: data
         }
+        console.log("Sending backendData", backendData);
         makeAPICall(backendData)
         Swal.fire({
             title: "Success",
@@ -192,7 +226,7 @@ const StrategyAlertBidAndAsk = ({ username }) => {
             <div className='w-50 d-flex flex-row justify-content-center m-auto'>
 
 
-
+                
                 {/* <label>Threshold</label> */}
                 <input
                     type="text"

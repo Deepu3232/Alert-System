@@ -1,11 +1,12 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 from typing import List, Optional
 from datetime import datetime
 
 class Detail(BaseModel):
     product: str
     mult: str 
-    selectedContract: str
+    #selectedContract: str
+    insID:str
     contractName: str
 
 class Strategy(BaseModel):
@@ -15,5 +16,5 @@ class Strategy(BaseModel):
     threshold: str 
     status: str
     details: List[Detail]
-    created_at: datetime = datetime.now()
-    modified_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    modified_at: datetime = Field(default_factory=datetime.now)

@@ -573,14 +573,14 @@ export const Alerts = ({ username, accounts }) => {
         setAlertType(e.target.value);
         if (e.target.value === "bidStrategyAlert") {
             // openStrategyAlertModalRef.current.click();
-            navigate("/strategy",{
+            navigate("/strategy", {
                 state: {
                     alertType: "bidStrategyAlert"
                 }
             })
         }
         else if (e.target.value === "askStrategyAlert") {
-            navigate("/strategy",{
+            navigate("/strategy", {
                 state: {
                     alertType: "askStrategyAlert"
                 }
@@ -635,6 +635,9 @@ export const Alerts = ({ username, accounts }) => {
         setNewThreshold(e.target.value);
     }
 
+    let processedThreshold = `>= ${threshold.trim()}`;
+
+
     const handleSubscriptionChange = (insID, index, e) => {
         // console.log("EVENT ", e.target.name)
         let checked = e.target.checked;
@@ -663,7 +666,13 @@ export const Alerts = ({ username, accounts }) => {
                 'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS'
             }
             // const response = await fetch("https://ap-south-1.aws.data.mongodb-api.com/app/application-0-tbfpqcl/endpoint/getSubscriptions", headersss);
-            const response = await fetch(`${baseURL}/getSubscriptions`, headersss)
+            const response = await fetch(`${baseURL}/getSubscriptions`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            });
             // const response = await fetch(`baseURL/getSubscriptions`, headersss)
             console.log("resonse ", response);
             const data = await response.json();
@@ -672,7 +681,7 @@ export const Alerts = ({ username, accounts }) => {
         }
 
         getSubscriptions();
-    }, [refresh, setRefresh])
+    }, [refresh])
 
 
 
@@ -856,15 +865,20 @@ export const Alerts = ({ username, accounts }) => {
                 productType: tempProductType,
                 details: updatedInfo,
                 alertType,
-                threshold,
+                threshold: processedThreshold,
                 alertStatus: "active"
             }),
         });
 
+        // if (!response.ok) {
+        //     throw new Error('Network response was not ok');
+        // }
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            const errorText = await response.text();  // get server error message
+            throw new Error(`Network response was not ok: ${errorText}`);
         }
-        setRefresh(!refresh)
+
+        setRefresh(prev => !prev);
 
         const result = await response.json();
         Swal.fire({
@@ -1106,7 +1120,7 @@ export const Alerts = ({ username, accounts }) => {
         <>
             <form className="d-flex" onSubmit={setAlert} role="search">
                 <div className="mt-5 d-flex w-100 justify-content-around" >
-                    
+
                     <div className="alertType">
                         {/* <select value={comp} onChange={handleCompChange} className="form-select" aria-label="Default select example"> */}
                         <select name='alertType' value={alertType} onChange={handleAlertTypeChange} className="form-select" aria-label="Default select example">
@@ -1124,7 +1138,7 @@ export const Alerts = ({ username, accounts }) => {
                     <div className="alertName">
                         <input name='alertName' onChange={handleAlertNameChange} value={alertName} class="form-control me-2" type="text" placeholder="Enter Alert Name" aria-label="Search" />
                     </div>
-                    
+
 
                     <div className='d-flex w-25'>
                         <select name='product' value={product} onChange={handleProductChange} className="form-select w-100" aria-label="select example" type="productType" placeholder="Product">
@@ -1155,7 +1169,7 @@ export const Alerts = ({ username, accounts }) => {
                         </div>
                         {/* <button onClick={getContracts} class="btn btn-success w-100" type="submit">Get Contracts</button> */}
                     </div>
-                    
+
 
                     <div className="threshold">
                         <input name='threshold' onChange={handleThresholdChange} value={threshold} class="form-control me-2" type="productType" placeholder="Enter Threshold" aria-label="Search" />
@@ -1414,12 +1428,12 @@ export const Alerts = ({ username, accounts }) => {
                     <>
                         {subscriptions.map((subs) => {
                             // Check if alertType is not "bidStrategyAlert"
-                            if (subs.alertType !== "bidStrategyAlert" && subs.alertType !== "askStrategyAlert") {
+                            if (subs.alertType === "bidStrategyAlert" || subs.alertType === "askStrategyAlert" || subs.alertType === "icebergAlert" || subs.alertType === "bestAskPrice" || subs.alertType === "bestBidPrice" || subs.alertType === "bestAskQty" || subs.alertType === "bestBidQty") {
                                 const contracts = subs.details
                                     .map((detail) => detail.contractName)
                                     .join(", ");
 
-                                console.log("SUBS " , subs)
+                                console.log("SUBS ", subs)
 
                                 return (
                                     <div
@@ -1436,7 +1450,7 @@ export const Alerts = ({ username, accounts }) => {
                                             >
 
                                                 <FiEdit
-                                                    onClick={() => updateAlert(subs)}
+                                                    onClick={() => updateAlert(subs._id)}
                                                     style={{ cursor: "pointer" }}
                                                     color="purple"
                                                     size="24px"
@@ -1459,8 +1473,8 @@ export const Alerts = ({ username, accounts }) => {
                                         <h6 className="text-monospace">Product: {subs.product}</h6>
                                         <h6 className="text-monospace">
                                             Product Type:{" "}
-                                            {subs.productType.charAt(0).toUpperCase() +
-                                                subs.productType.slice(1)}
+                                            {subs.productType ? subs.productType.charAt(0).toUpperCase() +
+                                                subs.productType.slice(1) : ""}
                                         </h6>
                                         <h6>
                                             Alert Type:{" "}
@@ -1473,14 +1487,14 @@ export const Alerts = ({ username, accounts }) => {
                                 );
                             } else {
                                 let StratDetails = subs.details;
-                                let str = ""; 
+                                let str = "";
                                 StratDetails.map((eachContract => {
                                     str += eachContract.contractName + "(" + eachContract.mult + ") ,";
                                 }))
 
                                 return (
                                     <div
-                                        key={subs.id}
+                                        key={subs._id}
                                         className="h-6 overflow-auto border border-success border-2 rounded p-3 d-flex flex-column mb-4 bg-white"
                                     >
                                         <div className="d-flex justify-content-between">

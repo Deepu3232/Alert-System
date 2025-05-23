@@ -13,3 +13,4 @@ client = MongoClient(dbURL)
 db = client[dbNAME]
 
 subscriptions = db["subscriptions"]
+alert=db["alerts"]
