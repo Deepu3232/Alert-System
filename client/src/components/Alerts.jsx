@@ -1062,12 +1062,13 @@ export const Alerts = ({ username, accounts }) => {
 
     const updateNewThreshold = async (details) => {
         closeThresholdUpdateModal.current.click();
-
-        //API call for updating the threshold in the DB
         const response = await fetch(`${baseURL}/updateThreshold/${details.id}`, {
             "method": "POST",
+            headers: {
+                "Content-type": "application/json"
+            },
             "body": JSON.stringify({ newThreshold }),
-            "content-type": "application/json"
+
         })
         const data = await response.json();
 

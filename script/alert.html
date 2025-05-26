@@ -79,13 +79,15 @@
         }
 
         const updateStatus = async (id, insID, contractName, alertType, threshold, parameterValue, username) => {
-            await sendMessage(contractName, alertType, threshold, parameterValue, username)
+            // await sendMessage(contractName, alertType, threshold, parameterValue, username)
             let contractID = insID.split("-")[1];
-            console.log("TEMP ", temp)
-            console.log("ALERT ID ", id)
+            console.log("contractID",contractID)
+            // console.log("TEMP ", temp)
+            id = String(id)
+            console.log("alert_ALERTID ", id)
             // const response = await fetch(`http://localhost:8000/updateStatus/${id}`, {
-            ///const response = await fetch(`http://localhost:8000/updateStatus/${id}`, {
-            const response = await fetch(`http://hydalert.dev.hertshtengroup.com/api/updateStatus/${id}`, {
+            const response = await fetch(`http://localhost:8000/updateStatus/${id}`, {
+                ////const response = await fetch(`http://hydalert.dev.hertshtengroup.com/api/updateStatus/${id}`, {
                 "method": "PATCH",
                 'mode': "cors",
                 'headers': {
@@ -94,9 +96,9 @@
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS',
                 "body": JSON.stringify({ contractID })
-            })
+            });
             const data = await response.json();
-
+            console.log('data: ', data)
             if (data) {
                 console.log(contractName, "  Breached")
             }
@@ -515,7 +517,7 @@
                                     ///let condition = eval(`${BestAskPrice} ${comp} ${threshold}`);
                                     ///console.log("Eval result:", condition);
                                     ///if (condition) {
-                                        ///console.log("✅ Condition is TRUE - threshold breached!");
+                                    ///console.log("✅ Condition is TRUE - threshold breached!");
                                     ///}
 
                                     if (tempIns === insID && eval(`${BestAskPrice} ${comp} ${threshold}`) && contract.status === "active") {
@@ -550,7 +552,7 @@
                 bestBidPriceAlertSubscription.addListener({
                     onItemUpdate: function (obj) {
                         let values = obj.updateValues;
-                        ///console.log("Bid Price Values here ", values);
+                        console.log("Bid Price Values here ", values);
                         let insID = values[2];
                         let BestAskPrice = parseFloat(values[4]);
                         let BestBidPrice = parseFloat(values[6]);
@@ -563,12 +565,14 @@
                                 let threshold = parseFloat(FullThreshold.split(" ")[1])
 
                                 let contracts = alert["details"];
+                                console.log("Contract",contracts)
                                 let alertID = alert["_id"];
+                                console.log("Alert ID",alertID)
 
 
                                 contracts.forEach((contract) => {
                                     let tempIns = "TT-" + contract.insID
-
+                                    console.log("tempIns",tempIns)
                                     if (tempIns === insID && eval(`${BestBidPrice} ${comp} ${threshold}`) && contract.status === "active") {
                                         updateStatus(alertID, insID, contract.contractName, alert.alertType, threshold, BestBidPrice, alert["user"]);
                                         // sendMessage(contractName, alertType, threshold, BestBidPrice, alert.user)
@@ -652,7 +656,7 @@
                     onItemUpdate: function (update) {
                         let values = update.updateValues;
                         ///console.log("Iceberg L1 Values ", values);
-                        
+
                         const bid_pr = parseFloat(update.getValue("BestBid")).toFixed(4);
                         const ask_pr = parseFloat(update.getValue("BestAsk")).toFixed(4);
                         const ins = update.getValue("InstrumentId");
@@ -674,7 +678,7 @@
                         const ltp = parseFloat(ltp_dict[ins]);
                         //console.log(ltp)
                         const str_ltp = ltp.toFixed(4);
-                        
+
 
                         if (bid_pr < ltp && ltp < ask_pr) {
                             ice_dict[ins][str_ltp] = { Take: 0, Hit: 0 };
@@ -708,15 +712,15 @@
                                 contracts.forEach((contract) => {
                                     console.log(contract)
                                     let tempIns = "TT-" + contract.insID
-                                    if (tempIns === ins &&  contract.status === "active") {
+                                    if (tempIns === ins && contract.status === "active") {
                                         console.log("working")
-                                        ThresholdSell={comp,val:threshold};
-                                        ThresholdBuy={comp,val:threshold};
+                                        ThresholdSell = { comp, val: threshold };
+                                        ThresholdBuy = { comp, val: threshold };
                                     }
                                 });
                             }
                         });
-                        
+
                         if (ThresholdSell && eval(`${ask_q} ${ThresholdSell.comp} ${ThresholdSell.val}`)) {
                             console.log("1")
                             const check_ls = [str_ltp, "Sell"];
@@ -727,7 +731,7 @@
                                     existing_ice[ins] = [];
                                 }
                                 existing_ice[ins].push(check_ls);
-                                
+
                                 console.log(existing_ice)
                                 const ice = [contr, ...check_ls, ask_q, ins];
                                 console.log(ice)

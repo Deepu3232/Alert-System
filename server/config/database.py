@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
+from datetime import datetime
 
 load_dotenv()
 
@@ -13,4 +14,5 @@ client = MongoClient(dbURL)
 db = client[dbNAME]
 
 subscriptions = db["subscriptions"]
-alert=db["alerts"]
+alert=db["alert"]
+

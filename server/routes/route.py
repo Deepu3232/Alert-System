@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter,Body
 from models.subscriptions import Subscriptions
 from models.strategy import Strategy
 from config.database import subscriptions,alert
@@ -9,6 +9,9 @@ from datetime import datetime
 from pydantic import BaseModel
 from fastapi import Cookie,Body
 from fastapi import HTTPException
+from datetime import datetime
+from copy import deepcopy
+import traceback
 
 class Contract(BaseModel):
     contractID : str
@@ -43,8 +46,8 @@ async def check_existance(subscription: Subscriptions):
     # Convert subscription to dictionary
     subscription_dict = subscription.model_dump()
 
-    print(subscription_dict["product"])
-    print(subscription_dict["productType"])
+    #print(subscription_dict["product"])
+    #print(subscription_dict["productType"])
 
     existing_subscription = subscriptions.find_one({
         "product": subscription.product,
@@ -67,6 +70,8 @@ async def check_existance(subscription: Subscriptions):
         subscriptions.insert_one(subscription_dict)
         return {"success": True , "type" : "newInserted"}
 
+
+
 # @router.post("/setSubscriptions")
 # async def post_subscriptions(subscription : Subscriptions):
 #     subscriptions.insert_one(subscription.model_dump())
@@ -75,11 +80,11 @@ async def check_existance(subscription: Subscriptions):
 @router.post("/setSubscriptions")
 async def post_subscriptions(subscription: Subscriptions):
     try:
-        print("Received subscription:", subscription)
+        #print("Received subscription:", subscription)
         result = subscriptions.insert_one(subscription.dict())
         return {"success": True, "inserted_id": str(result.inserted_id)}
     except Exception as e:
-        print(f"Error inserting subscription: {e}")
+        #print(f"Error inserting subscription: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 
@@ -99,22 +104,24 @@ async def post_subscriptions(subscription: Subscriptions):
 @router.post("/setStrategyAlert")
 async def post_subscriptions(strategy: Strategy):
     try:
-        print("Received strategy:", strategy)
+        #print("Received strategy:", strategy)
         result = subscriptions.insert_one(strategy.dict())
         return {"success": True, "inserted_id": str(result.inserted_id)}
     except Exception as e:
-        print("Insert error:", e)  # 🧠 Add this line
+        #print("Insert error:", e)  # 🧠 Add this line
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 
 @router.patch("/updateStatus/{id}")
 async def update_status(id : str , contract : Contract):
+    print('id: ', id)
     alertID = ObjectId(id)
     print("AlertID " , alertID)
-    # print("contract " , contract)
-    cID = contract.contractID
-    print("contract id",cID)
+    print("contract " , contract)
+    cID = str(contract.contractID)
+    print(f"🔍 ALERT UPDATE CALLED — ID: {id}, ContractID: {cID}")
+
     existing_subscription = subscriptions.find_one_and_update(
         {
             "_id" : alertID,
@@ -130,10 +137,55 @@ async def update_status(id : str , contract : Contract):
     print("Updated subscription:", existing_subscription)
 
     if existing_subscription:
-        alert.insert_one(existing_subscription)
+        alert.insert_one({
+            "alertID": str(id),
+            "contractID": cID,
+            "timestamp": datetime.now()
+        })
+        print("✅ Inserted minimal alert into alert collection")
+
 
     return {"data" : serialize_document(existing_subscription)} 
 
+
+# @router.patch("/updateStatus/{id}")
+# async def update_status(id: str, contract : Contract):
+#     print('id: ', id)
+#     alertID = ObjectId(id)
+#     print("AlertID " , alertID)
+#     cID = contract.contractID
+#     print(f"🔍 ALERT UPDATE CALLED — ID: {id}, ContractID: {cID}")
+#     subscription = subscriptions.find_one({"_id": alertID, "details.insID": cID})
+#     result = subscriptions.find_one_and_update(
+#         {
+#             "_id":alertID,
+#             "details.insID":cID
+#         },
+#         {
+#             "$set": {
+#                 "details.$.status": "breached"
+#             }
+#         },
+#         return_document=ReturnDocument.AFTER
+#     )
+#     if not result:
+#         raise HTTPException(status_code=500, detail="Status update failed")
+#     alert_doc = {
+#         "subscription_id": str(id),
+#         "user": subscription["user"],
+#         "alertName": subscription["alertName"],
+#         "product": subscription["product"],
+#         "productType": subscription["productType"],
+#         "alertType": subscription["alertType"],
+#         "threshold": subscription["threshold"],
+#         "contractID": cID,
+#         # "contractName": contract_name,
+#         # "parameter_value": parameter_value,
+#         "status": "breached",
+#         "triggered_at": datetime.utcnow()
+#     }
+#     alert.insert_one(alert_doc)
+#     return {"status": "breach recorded"}
 
 # @router.get("/getSubscriptions")
 # async def get_subscriptions():
@@ -149,6 +201,7 @@ async def get_subscriptions(username:str=Cookie(default=None)):
     # subscriptions_list = list(subscriptions.find({"user": username}))
     # print(subscriptions_list)
     output = serialize_document2(subscriptions_list)
+    # print(username, output)
     return {"success": True, "subscriptions": output}
 
 
