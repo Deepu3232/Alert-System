@@ -1061,8 +1061,9 @@ export const Alerts = ({ username, accounts }) => {
 
 
     const updateNewThreshold = async (details) => {
+        console.log("[DEBUG] details passed to updateNewThreshold:", details);
         closeThresholdUpdateModal.current.click();
-        const response = await fetch(`${baseURL}/updateThreshold/${details.id}`, {
+        const response = await fetch(`${baseURL}/updateThreshold/${details}`, {
             "method": "POST",
             headers: {
                 "Content-type": "application/json"

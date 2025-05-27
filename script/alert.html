@@ -81,7 +81,7 @@
         const updateStatus = async (id, insID, contractName, alertType, threshold, parameterValue, username) => {
             // await sendMessage(contractName, alertType, threshold, parameterValue, username)
             let contractID = insID.split("-")[1];
-            console.log("contractID",contractID)
+            console.log("contractID", contractID)
             // console.log("TEMP ", temp)
             id = String(id)
             console.log("alert_ALERTID ", id)
@@ -95,7 +95,11 @@
                 },
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS',
-                "body": JSON.stringify({ contractID })
+                body: JSON.stringify({
+                    contractID: contractID,
+                    contractName: contractName,
+                    parameterValue: parameterValue
+                })
             });
             const data = await response.json();
             console.log('data: ', data)
@@ -194,8 +198,9 @@
 
                 alerts = allContracts;
                 ///console.log("ALERTS ", alerts)
-
-                allContracts.forEach(contractt => {
+                let activeContract=allContracts.filter(alert=>alert.status==="active");
+                activeContract.forEach(contractt => {
+                    if(contractt.status!=="active") return;
                     let details = contractt.details;
                     ///console.log(details)
                     let alertType = contractt.alertType;
@@ -405,6 +410,11 @@
                                         updateStatus(alertID, insID, contract.contractName, alertType, threshold, BestBidQty, alert["user"]);
                                         ///console.log("update status");
                                         //sendMessage(contractName, alertType, threshold, BestBidQty, alert["user"]);
+                                        let allBreached = contracts.every(c => c.status === "breached" || c.status === "inactive");
+                                        if (allBreached) {
+                                            console.log(`All contracts breached for alert ${alertID}, unsubscribing...`);
+                                            client.unsubscribe(bestBidQtyAlertSubscription); // or relevant one
+                                        }
                                     }
                                 });
                             }
@@ -458,7 +468,11 @@
                                     if (tempIns === insID && eval(`${BestAskQty} ${comp} ${threshold}`) && contract.status === "active") {
                                         updateStatus(alertID, insID, contract.contractName, alert.alertType, threshold, BestAskQty, alert["user"]);
                                         //sendMessage(contractName, alertType, threshold, BestAskQty, alert.user)
-
+                                        let allBreached = contracts.every(c => c.status === "breached" || c.status === "inactive");
+                                        if (allBreached) {
+                                            console.log(`All contracts breached for alert ${alertID}, unsubscribing...`);
+                                            client.unsubscribe(bestBidQtyAlertSubscription); // or relevant one
+                                        }
 
                                         ///console.log("BEST ASK QUANTITY ALERT BREACHED !!!");
                                     }
@@ -525,6 +539,11 @@
                                         ///console.log("update status");
                                         //sendMessage(contractName, alertType, threshold, BestAskPrice, alert.user)
                                         ///console.log("BEST ASK PRICE ALERT BREACHED !!!");
+                                        let allBreached = contracts.every(c => c.status === "breached" || c.status === "inactive");
+                                        if (allBreached) {
+                                            console.log(`All contracts breached for alert ${alertID}, unsubscribing...`);
+                                            client.unsubscribe(bestBidQtyAlertSubscription); // or relevant one
+                                        }
                                     }
                                 });
                             }
@@ -565,18 +584,23 @@
                                 let threshold = parseFloat(FullThreshold.split(" ")[1])
 
                                 let contracts = alert["details"];
-                                console.log("Contract",contracts)
+                                console.log("Contract", contracts)
                                 let alertID = alert["_id"];
-                                console.log("Alert ID",alertID)
+                                console.log("Alert ID", alertID)
 
 
                                 contracts.forEach((contract) => {
                                     let tempIns = "TT-" + contract.insID
-                                    console.log("tempIns",tempIns)
+                                    console.log("tempIns", tempIns)
                                     if (tempIns === insID && eval(`${BestBidPrice} ${comp} ${threshold}`) && contract.status === "active") {
                                         updateStatus(alertID, insID, contract.contractName, alert.alertType, threshold, BestBidPrice, alert["user"]);
                                         // sendMessage(contractName, alertType, threshold, BestBidPrice, alert.user)
                                         // console.log("BEST BID PRICE QUANTITY ALERT BREACHED !!!");
+                                        let allBreached = contracts.every(c => c.status === "breached" || c.status === "inactive");
+                                        if (allBreached) {
+                                            console.log(`All contracts breached for alert ${alertID}, unsubscribing...`);
+                                            client.unsubscribe(bestBidQtyAlertSubscription); // or relevant one
+                                        }
                                     }
                                 });
                             }
@@ -654,6 +678,8 @@
 
                 L1Subscription.addListener({
                     onItemUpdate: function (update) {
+
+
                         let values = update.updateValues;
                         ///console.log("Iceberg L1 Values ", values);
 
@@ -704,7 +730,7 @@
                                 let comp = FullThreshold.split(" ")[0]
                                 //console.log(comp)
                                 let threshold = parseFloat(FullThreshold.split(" ")[1])
-                                console.log(threshold)
+                                //console.log(threshold)
                                 let contracts = alert["details"];
                                 let alertID = alert["_id"];
 
@@ -716,6 +742,7 @@
                                         console.log("working")
                                         ThresholdSell = { comp, val: threshold };
                                         ThresholdBuy = { comp, val: threshold };
+                                        contract.status = "inactive";
                                     }
                                 });
                             }
@@ -894,9 +921,6 @@
 
         setInterval(getSubscriptions, 1000);
         setInterval(strategyAlert, 2000);
-        setInterval(() => {
-            getSubscriptions();
-        }, 600000);
 
     </script>
 

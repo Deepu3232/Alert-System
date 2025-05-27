@@ -114,12 +114,14 @@ async def post_subscriptions(strategy: Strategy):
 
 
 @router.patch("/updateStatus/{id}")
-async def update_status(id : str , contract : Contract):
+async def update_status(id : str , contract : dict=Body(...)):
     print('id: ', id)
     alertID = ObjectId(id)
     print("AlertID " , alertID)
     print("contract " , contract)
-    cID = str(contract.contractID)
+    cID = str(contract.get("contractID"))
+    contractName = contract.get("contractName")
+    parameterValue = contract.get("parameterValue")
     print(f"🔍 ALERT UPDATE CALLED — ID: {id}, ContractID: {cID}")
 
     existing_subscription = subscriptions.find_one_and_update(
@@ -140,9 +142,21 @@ async def update_status(id : str , contract : Contract):
         alert.insert_one({
             "alertID": str(id),
             "contractID": cID,
+            "contractName":contractName,
+            "parameterValue":parameterValue,
             "timestamp": datetime.now()
         })
-        print("✅ Inserted minimal alert into alert collection")
+        print("Inserted minimal alert into alert collection")
+        all_breached = all(
+            detail.get("status") != "active"
+            for detail in existing_subscription.get("details", [])
+        )
+        if all_breached:
+            subscriptions.update_one(
+                {"_id": alertID},
+                {"$set": {"alertStatus": "breached"}}
+            )
+            print("All contracts breached")
 
 
     return {"data" : serialize_document(existing_subscription)} 
